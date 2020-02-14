@@ -15,6 +15,8 @@ import xgboost as xgb
 from src.load_data import load
 from src.preprocess import make_split, scale_time_amount
 from src.resample import smote_resample
+from src.evaluate import evaluate, plot_pr_curve, plot_roc_curve
+from src.threshold import best_f1_threshold
 
 
 def build_model(cfg):
@@ -56,11 +58,22 @@ def run(config_path):
     model = build_model(cfg)
     model.fit(X_train, y_train)
 
+    # quick eval on the held-out test set
+    metrics = evaluate(model, X_test, y_test, threshold=cfg["eval"]["threshold"])
+    print("metrics:", metrics)
+
+    proba = model.predict_proba(X_test)[:, 1]
+    t_star, f1_star = best_f1_threshold(y_test, proba)
+    print("best-F1 threshold = %.4f (F1=%.4f)" % (t_star, f1_star))
+
+    plot_pr_curve(model, X_test, y_test)
+    plot_roc_curve(model, X_test, y_test)
+
     os.makedirs("models", exist_ok=True)
     joblib.dump(model, "models/model.pkl")
     joblib.dump(scaler, "models/scaler.pkl")
     print("saved models/model.pkl")
-    return model
+    return model, metrics
 
 
 if __name__ == "__main__":
