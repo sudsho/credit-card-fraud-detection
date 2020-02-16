@@ -14,7 +14,7 @@ import xgboost as xgb
 
 from src.load_data import load
 from src.preprocess import make_split, scale_time_amount
-from src.resample import smote_resample
+from src.resample import resample as do_resample
 from src.evaluate import evaluate, plot_pr_curve, plot_roc_curve
 from src.threshold import best_f1_threshold
 
@@ -49,11 +49,14 @@ def run(config_path):
 
     X_train, X_test, scaler = scale_time_amount(X_train, X_test, cols=cfg["preprocess"]["scale_columns"])
 
-    if cfg["resample"]["strategy"] == "smote":
-        X_train, y_train = smote_resample(
-            X_train, y_train,
+    strat = cfg["resample"]["strategy"]
+    if strat != "none":
+        X_train, y_train = do_resample(
+            strat, X_train, y_train,
             sampling_strategy=cfg["resample"]["smote_strategy"],
             random_state=cfg["resample"]["random_state"])
+    print("after resample:", len(X_train), "rows, fraud frac=",
+          float(sum(y_train) / len(y_train)))
 
     model = build_model(cfg)
     model.fit(X_train, y_train)
