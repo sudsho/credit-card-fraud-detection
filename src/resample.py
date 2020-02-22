@@ -8,8 +8,13 @@ from imblearn.over_sampling import SMOTE, RandomOverSampler
 from imblearn.under_sampling import RandomUnderSampler
 
 
-def smote_resample(X_train, y_train, sampling_strategy=0.1, random_state=42):
-    sm = SMOTE(sampling_strategy=sampling_strategy, random_state=random_state)
+def smote_resample(X_train, y_train, sampling_strategy=0.1, random_state=42, k_neighbors=None):
+    # When the minority class is tiny, default k_neighbors=5 fails. Pick a safe
+    # k based on the minority count.
+    if k_neighbors is None:
+        n_min = int(sum(y_train == 1))
+        k_neighbors = max(1, min(5, n_min - 1))
+    sm = SMOTE(sampling_strategy=sampling_strategy, random_state=random_state, k_neighbors=k_neighbors)
     X_res, y_res = sm.fit_resample(X_train, y_train)
     return X_res, y_res
 
