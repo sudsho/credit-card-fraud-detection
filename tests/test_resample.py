@@ -15,8 +15,9 @@ def test_smote_increases_minority():
     X, y = _toy()
     Xr, yr = smote_resample(X, y, sampling_strategy=0.5, random_state=42)
     assert sum(yr) > sum(y)
-    # ratio should be ~0.5 of majority
-    assert abs(sum(yr) / sum(yr == 0) - 0.5) < 0.05
+    # ratio of minority to majority should be ~0.5 (with rounding tolerance)
+    ratio = sum(yr == 1) / sum(yr == 0)
+    assert abs(ratio - 0.5) < 0.02
 
 
 def test_random_over():
