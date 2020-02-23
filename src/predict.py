@@ -12,9 +12,18 @@ def load_artifacts(model_path="models/model.pkl", scaler_path="models/scaler.pkl
     return model, scaler
 
 
+def validate(features):
+    """Return (ok, missing) for a candidate features dict."""
+    missing = [k for k in FEATURES if k not in features]
+    return (len(missing) == 0), missing
+
+
 def predict_one(model, scaler, features, threshold=0.5):
     """features is a dict with keys Time, V1..V28, Amount."""
-    row = np.array([[features[k] for k in FEATURES]], dtype=float)
+    ok, missing = validate(features)
+    if not ok:
+        raise ValueError("missing features: %s" % missing)
+    row = np.array([[float(features[k]) for k in FEATURES]], dtype=float)
     # scale Time and Amount in-place
     row[:, [0, -1]] = scaler.transform(row[:, [0, -1]])
     proba = float(model.predict_proba(row)[0, 1])
