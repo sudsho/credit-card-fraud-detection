@@ -29,10 +29,14 @@ def bench(config_path="configs/default.yaml"):
                          random_state=cfg["resample"]["random_state"])
 
     rows = []
-    for mt in ["logreg", "randomforest", "xgboost"]:
+    # iterate in fixed order so the json output is reproducible
+    for mt in sorted(["logreg", "randomforest", "xgboost"]):
         cfg_local = dict(cfg)
         cfg_local["model"] = dict(cfg["model"])
         cfg_local["model"]["model_type"] = mt
+        # also pin model-side random_state where applicable
+        if mt == "randomforest":
+            cfg_local["model"]["randomforest"] = dict(cfg["model"]["randomforest"])
         m = build_model(cfg_local)
         m.fit(Xr, yr)
         metrics = evaluate(m, X_test, y_test, threshold=cfg["eval"]["threshold"])
