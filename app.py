@@ -32,8 +32,15 @@ def predict():
     missing = [k for k in FEATURES if k not in payload]
     if missing:
         return jsonify({"error": "missing features", "missing": missing}), 400
-    model, scaler = get_model()
-    out = predict_one(model, scaler, payload, threshold=THRESHOLD)
+    try:
+        model, scaler = get_model()
+        out = predict_one(model, scaler, payload, threshold=THRESHOLD)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        # don't leak stack traces in prod
+        app.logger.exception("predict failed")
+        return jsonify({"error": "internal"}), 500
     return jsonify(out)
 
 
