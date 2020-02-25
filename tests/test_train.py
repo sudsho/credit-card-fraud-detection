@@ -46,11 +46,14 @@ def _write_cfg(path, csv_path, model_type="logreg"):
 @pytest.mark.parametrize("model_type", ["logreg", "xgboost"])
 def test_train_smoke(tmp_path, monkeypatch, model_type):
     csv = tmp_path / "creditcard.csv"
-    _write_toy_csv(csv)
+    # use a slightly larger n so SMOTE k_neighbors has enough fraud rows
+    _write_toy_csv(csv, n=4000, fraud_rate=0.05)
     cfg = tmp_path / "cfg.yaml"
     _write_cfg(cfg, csv, model_type=model_type)
     monkeypatch.chdir(tmp_path)
     from src.train import run
     model, metrics = run(str(cfg))
-    assert metrics["roc_auc"] >= 0.0
+    # toy data is random; just check the metric is in [0, 1] and the file is on disk.
+    assert 0.0 <= metrics["roc_auc"] <= 1.0
+    assert 0.0 <= metrics["pr_auc"] <= 1.0
     assert os.path.exists("models/model.pkl")
