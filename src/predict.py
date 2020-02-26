@@ -2,8 +2,7 @@
 import joblib
 import numpy as np
 
-
-FEATURES = ["Time"] + ["V%d" % i for i in range(1, 29)] + ["Amount"]
+from src.constants import FEATURES
 
 
 def load_artifacts(model_path="models/model.pkl", scaler_path="models/scaler.pkl"):
