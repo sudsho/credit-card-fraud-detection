@@ -8,7 +8,10 @@ install:
   - pip install -r requirements.txt
 
 script:
-  - pytest -q
+  - pytest -q --maxfail=1
 
 cache:
   pip: true
+
+notifications:
+  email: false
