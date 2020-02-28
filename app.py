@@ -3,6 +3,7 @@
 POST /predict  with JSON {"Time":..., "V1":..., ..., "V28":..., "Amount":...}
 GET  /health
 """
+import os
 from flask import Flask, request, jsonify
 
 from src.predict import load_artifacts, predict_one, FEATURES
@@ -11,7 +12,7 @@ from src.predict import load_artifacts, predict_one, FEATURES
 app = Flask(__name__)
 MODEL = None
 SCALER = None
-THRESHOLD = 0.5
+THRESHOLD = float(os.environ.get("THRESHOLD", "0.5"))
 
 
 def get_model():
@@ -45,4 +46,5 @@ def predict():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
